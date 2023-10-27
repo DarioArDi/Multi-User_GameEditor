@@ -11,7 +11,7 @@ project "Game"
     cppdialect "C++17"
     targetdir "../../bin/%{cfg.buildcfg}"
     includedirs { 
-        "../../deps/arteluna/deps/glfw-3.3.8/include",
+        "../../deps/arteluna/deps/glfw-3.3.8/include/",
         "../../include",
         "../../deps/arteluna/include",
         "../../deps/arteluna/deps/glad2/include",
@@ -52,7 +52,8 @@ project "ArteLuna"
     cppdialect "C++17"
     targetdir "../../deps/arteluna/bin/%{cfg.buildcfg}"
     -- ignoredefaultlibraries { "MSVCRT" }
-    includedirs { 
+    includedirs {
+        "../../deps/arteluna/deps/enet-1.3.17/include",
         "../../deps/arteluna/deps/glfw-3.3.8/include",
         "../../deps/arteluna/include",
         "../../deps/arteluna/deps/glad2/include",
@@ -76,6 +77,7 @@ project "ArteLuna"
     }
     
     links {
+        "enet.lib",
         "imgui.lib",
         "glad2.lib",
         "opengl32.lib",
@@ -112,7 +114,7 @@ project "glad2"
     targetdir "../../deps/arteluna/bin/%{cfg.buildcfg}"
 
     includedirs {
-        "../../deps/arteluna/deps/glad2/include"
+        "../../deps/arteluna/deps/glad2/include/"
     }
 
     files {
@@ -141,6 +143,38 @@ project "imgui"
         "../../deps/arteluna/deps/imgui/backends/imgui_impl_opengl3.h",
         "../../deps/arteluna/deps/imgui/backends/imgui_impl_opengl3.cpp",
     }
+
+project "enet"
+    architecture "x64"
+    location "../../ArteLuna/enet"
+    kind "StaticLib"
+    language "C"
+    targetdir "../../deps/arteluna/bin/%{cfg.buildcfg}"
+
+    files {
+    "../../deps/arteluna/deps/enet-1.3.17/*.c",
+    "../../deps/arteluna/deps/enet-1.3.17/include/**.h"
+}
+    
+    includedirs { "../../deps/arteluna/deps/enet-1.3.17/include" }
+    
+    configuration "Debug"
+        -- targetsuffix "d"
+        
+        defines({ "DEBUG" })
+
+        flags { "Symbols" }
+    
+    configuration "Release"
+        defines({ "NDEBUG" })
+
+        flags { "Optimize" }
+        
+    configuration { "Debug", "x64" }
+        targetsuffix "64d"
+        
+    configuration { "Release", "x64" }
+        targetsuffix "64"
     
     -- https://decovar.dev/blog/2019/08/04/glfw-dear-imgui/
 
