@@ -11,16 +11,32 @@ namespace al {
     ~Networking();
 
     void CreateServer();
+    
     void CreateClient();
+
+    void ServerManager();
+
+    void SendPacket();
+
+    void Connect();
+
+    void Disconnect();
+    
   private:
 
     void init();
+    
     void ImguiMenu();
+
+
+    
     ENetAddress address_;
     ENetHost* server_;
+    ENetPeer* peer_;
     ENetHost* client_;
     int8_t max_clients_;
-    bool initialized;
+    
+    bool initialized_;
   };
 }
 #endif
