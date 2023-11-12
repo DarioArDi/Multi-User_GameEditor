@@ -1,6 +1,7 @@
 workspace "ArteLuna"
     configurations { "Debug", "Release"}
     location "../../ArteLuna"
+
 project "Game"
     dependson {"ArteLuna"}
     architecture "x64"
@@ -10,15 +11,16 @@ project "Game"
     language "C++"
     cppdialect "C++17"
     targetdir "../../bin/%{cfg.buildcfg}"
-    includedirs { 
-        "../../deps/arteluna/deps/glfw-3.3.8/include/",
-        "../../include",
+    includedirs {
+        "../../deps/arteluna/deps/enet-1.3.17/include",
+        "../../deps/arteluna/deps/glfw-3.3.8/include",
         "../../deps/arteluna/include",
         "../../deps/arteluna/deps/glad2/include",
         "../../deps/arteluna/deps/imgui",
         "../../deps/arteluna/deps/tinyobjloader",
         "../../deps/arteluna/deps/glm/",
-        "../../deps/arteluna/deps/stb/"
+        "../../deps/arteluna/deps/stb/",
+        "../../include"
     }
 
     files {
@@ -70,6 +72,7 @@ project "ArteLuna"
     }
 
     libdirs { 
+        "../../deps/arteluna/deps/enet-1.3.17",
         "../../deps/arteluna/deps/glfw-3.3.8/lib-vc2019",
         "../../deps/arteluna/deps/openal-1.1/libs/Win64",
         "../../deps/arteluna/bin/Debug",
@@ -77,7 +80,9 @@ project "ArteLuna"
     }
     
     links {
-        "enet.lib",
+        "winmm.lib",
+        "ws2_32.lib",
+        "enet64.lib",
         "imgui.lib",
         "glad2.lib",
         "opengl32.lib",
@@ -143,38 +148,38 @@ project "imgui"
         "../../deps/arteluna/deps/imgui/backends/imgui_impl_opengl3.h",
         "../../deps/arteluna/deps/imgui/backends/imgui_impl_opengl3.cpp",
     }
-
-project "enet"
-    architecture "x64"
-    location "../../ArteLuna/enet"
-    kind "StaticLib"
-    language "C"
-    targetdir "../../deps/arteluna/bin/%{cfg.buildcfg}"
-
-    files {
-    "../../deps/arteluna/deps/enet-1.3.17/*.c",
-    "../../deps/arteluna/deps/enet-1.3.17/include/**.h"
-}
-    
-    includedirs { "../../deps/arteluna/deps/enet-1.3.17/include" }
-    
-    configuration "Debug"
-        -- targetsuffix "d"
-        
-        defines({ "DEBUG" })
-
-        flags { "Symbols" }
-    
-    configuration "Release"
-        defines({ "NDEBUG" })
-
-        flags { "Optimize" }
-        
-    configuration { "Debug", "x64" }
-        targetsuffix "64d"
-        
-    configuration { "Release", "x64" }
-        targetsuffix "64"
-    
     -- https://decovar.dev/blog/2019/08/04/glfw-dear-imgui/
+
+-- project "enet"
+--     architecture "x64"
+--     location "../../ArteLuna/enet"
+--     kind "StaticLib"
+--     language "C"
+--     targetdir "../../deps/arteluna/bin/%{cfg.buildcfg}"
+
+--     files {
+--     "../../deps/arteluna/deps/enet-1.3.17/*.c",
+--     "../../deps/arteluna/deps/enet-1.3.17/include/**.h"
+--     }
+    
+--     includedirs { "../../deps/arteluna/deps/enet-1.3.17/include" }
+    
+--     configuration "Debug"
+--         -- targetsuffix "d"
+        
+--         defines({ "DEBUG" })
+
+--         flags { "Symbols" }
+    
+--     configuration "Release"
+--         defines({ "NDEBUG" })
+
+--         flags { "Optimize" }
+        
+--     configuration { "Debug", "x64" }
+--         targetsuffix "64d"
+        
+--     configuration { "Release", "x64" }
+--         targetsuffix "64"
+    
 
