@@ -4,17 +4,23 @@
 
 #include "enet/enet.h"
 
+namespace std{
+  class thread;
+}
+
 namespace al {
   class Networking {
   public:
     Networking();
     ~Networking();
 
-    void CreateServer();
+    void StartServer();
     
+    void EndServer();
+
     void CreateClient();
 
-    void ServerManager();
+    void ConnectionProcess();
 
     void SendPacket();
 
@@ -22,20 +28,21 @@ namespace al {
 
     void Disconnect();
     
-  private:
-
-    void init();
-    
     void ImguiMenu();
 
-
+  private:
+    void init();
+    char message[255];
     
+    const char* host_name = "127.0.0.1";
+    
+    std::thread* connection_handle_thread_;
     ENetAddress address_;
     ENetHost* server_;
     ENetPeer* peer_;
     ENetHost* client_;
     int8_t max_clients_;
-    
+    uint32_t ticks_;
     bool initialized_;
   };
 }

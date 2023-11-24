@@ -1,6 +1,7 @@
 #include "window.h"
 
 #include "entity.h"
+#include "imgui.h"
 #include "input.h"
 #include "engine/mesh.h"
 #include "engine/material.h"
@@ -11,18 +12,13 @@
 #include "components/light_component.h"
 #include "engine/engine.h"
 #include "engine/entity_manager.h"
-int main() {
-  al::ServiceManager sm;
-  al::Engine engine(sm);
-  al::EntityManager& em = *sm.Get<al::EntityManager>();
+#include "engine/networking.h"
+uint32_t cubes_parent_id;
 
-  al::Window& window = *engine.CreateNewWindow("ArteLune",1600,900);
-  window.camera_.set_position({0,2.5f,-5.f});
-  al::LightManager l_manager(em);
-  sm.Add(l_manager);
-  assert(sm.Get<al::LightManager>());
-  window.camera_.InitCubeMap();
-  std::shared_ptr<al::Material> material = std::make_shared<al::Material>(
+void InitLevel(al::ServiceManager& sm) {
+  al::EntityManager& em = *sm.Get<al::EntityManager>();
+  auto& l_manager = *sm.Get<al::LightManager>();
+   std::shared_ptr<al::Material> material = std::make_shared<al::Material>(
     "../../deps/arteluna/bin/vertex.glslv",
     "../../deps/arteluna/bin/fragment.glslf",
     "../../deps/arteluna/data/textures/bricks2.jpg",
@@ -127,7 +123,7 @@ int main() {
   al::Entity& cubes_parent = sm.Get<al::EntityManager>()->CreateNewEntity("Light parent");
   al::TransformComponent* p_transform = cubes_parent.get_component<al::TransformComponent>(em);
   p_transform->set_position({ 0.f, 5.0f, 0.0f });
-  auto cubes_parent_id = cubes_parent.id();
+  cubes_parent_id = cubes_parent.id();
    al::Entity& cube_ = sm.Get<al::EntityManager>()->CreateNewEntity("Cubo2",cubes_parent_id);
   cube_.get_component<al::TransformComponent>(em)->set_position({ 0,3,0 });
   cube_.get_component<al::TransformComponent>(em)->set_scale({ 1,1,1 });
@@ -178,10 +174,26 @@ int main() {
 	render_cmp->material_ = material;
   */
 
+}
+
+int main() {
+  al::ServiceManager sm;
+  al::Engine engine(sm);
+  al::Networking networking;
+  sm.Add(networking);
+  al::EntityManager& em = *sm.Get<al::EntityManager>();
+
+  al::Window& window = *engine.CreateNewWindow("ArteLuna",1600,900);
+  window.camera_.set_position({0,2.5f,-5.f});
+  al::LightManager l_manager(em);
+  sm.Add(l_manager);
+  assert(sm.Get<al::LightManager>());
+  window.camera_.InitCubeMap();
+  InitLevel(sm);
+  
   while (!window.ShouldClose()) {
  
     window.BeginFrame();
-    // --------ImGui--------
     if(window.input_->IsKeyDown(al::KEY_2)){
       for (size_t i = 2; i < em.EntityCount();i++){
         if (i != cubes_parent_id){
@@ -197,7 +209,6 @@ int main() {
         }
       }
     }
-    // ----------------------
     if(window.input_->IsKeyDown(al::KEY_1)){
       al::Entity* entity = em.GetEntity(cubes_parent_id);
       auto transform = entity->get_component<al::TransformComponent>(em);
@@ -205,6 +216,11 @@ int main() {
       rot.x += (float)window.delta_time();
       transform->set_rotation(rot);
     }
+    
+    // --------ImGui--------
+    networking.ImguiMenu();
+    
+    // ----------------------
     window.EndFrame();
   }
 
