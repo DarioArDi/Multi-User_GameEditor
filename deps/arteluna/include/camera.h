@@ -29,8 +29,8 @@ namespace al{
     __forceinline glm::vec3 up() const;
     __forceinline float ortho_x();
     __forceinline float ortho_y();
-    __forceinline float near();
-    __forceinline float far();
+    __forceinline float get_near();
+    __forceinline float get_far();
 
     __forceinline void set_position(glm::vec3 pos);
     __forceinline void set_ortho_x(float m);
@@ -118,11 +118,11 @@ namespace al{
     return ortho_y_;
   }
 
-  inline float Camera::near() {
+  inline float Camera::get_near() {
     return near_;
   }
 
-  inline float Camera::far() {
+  inline float Camera::get_far() {
     return far_;
   }
   void Camera::set_position(glm::vec3 pos) {

@@ -22,7 +22,10 @@ namespace al{
   
     sm.Add(systems_);
     assert(sm.Get<Systems>());
-  
+    
+    sm.Add(networking);
+    assert(sm.Get<Networking>());
+
     sm_ = &sm;
   }
 

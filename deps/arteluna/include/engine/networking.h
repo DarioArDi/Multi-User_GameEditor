@@ -1,49 +1,54 @@
 #ifndef __NETWORKING_H__
 #define __NETWORKING_H__ 1
-#include <cstdint>
+#include <vec3.hpp>
 
-#include "enet/enet.h"
+#include "client.h"
+#include "server.h"
 
-namespace std{
-  class thread;
+namespace al{
+  class Component;
 }
 
 namespace al {
+  
   class Networking {
   public:
     Networking();
     ~Networking();
 
-    void StartServer();
-    
-    void EndServer();
-
-    void CreateClient();
-
-    void ConnectionProcess();
-
-    void SendPacket();
-
-    void Connect();
-
-    void Disconnect();
-    
     void ImguiMenu();
-
+    
   private:
-    void init();
-    char message[255];
-    
-    const char* host_name = "127.0.0.1";
-    
-    std::thread* connection_handle_thread_;
-    ENetAddress address_;
-    ENetHost* server_;
-    ENetPeer* peer_;
-    ENetHost* client_;
-    int8_t max_clients_;
-    uint32_t ticks_;
-    bool initialized_;
+    Server server_;
+    Client client_;
+    friend class Client;
+    friend class Server;
+  };
+
+  enum PackageType {
+    kNone = -1,
+    kUserCameraUpdate,
+    kComponentUpdate
+  };
+  
+  class Package {
+  public:
+    PackageType type();
+  protected:
+    PackageType type_;
+  };
+
+  class ComponentUpdate : public Package {
+  public:
+    ComponentUpdate();
+    Component* component_;
+  };
+
+  class UserCameraUpdate : public Package {
+  public:
+    glm::vec3 position_;
+    glm::vec3 rotation_;
+    UserCameraUpdate();
   };
 }
 #endif

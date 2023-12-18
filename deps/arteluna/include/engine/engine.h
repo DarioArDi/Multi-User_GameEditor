@@ -5,6 +5,7 @@
 #include "entity_manager.h"
 
 #include "light_manager.h"
+#include "networking.h"
 #include "systems/systems.h"
 namespace al{
   class Window;
@@ -22,6 +23,7 @@ namespace al{
       bool windowed = true, int monitor = 0);
 
     ServiceManager* sm_;
+    Networking networking;
     EntityManager em_;
     Systems systems_;
   protected:

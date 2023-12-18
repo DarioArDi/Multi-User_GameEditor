@@ -179,8 +179,6 @@ void InitLevel(al::ServiceManager& sm) {
 int main() {
   al::ServiceManager sm;
   al::Engine engine(sm);
-  al::Networking networking;
-  sm.Add(networking);
   al::EntityManager& em = *sm.Get<al::EntityManager>();
 
   al::Window& window = *engine.CreateNewWindow("ArteLuna",1600,900);
@@ -218,7 +216,7 @@ int main() {
     }
     
     // --------ImGui--------
-    networking.ImguiMenu();
+    engine.networking.ImguiMenu();
     
     // ----------------------
     window.EndFrame();
