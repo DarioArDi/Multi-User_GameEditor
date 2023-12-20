@@ -4,24 +4,32 @@
 #include <iostream>
 #include <thread>
 
+#include "entity.h"
 #include "imgui.h"
+#include "components/render_component.h"
+#include "engine/entity_manager.h"
+#include "engine/networking.h"
 
 namespace al {
 
-  Client::Client() {
-    
+  Client::Client(ServiceManager& sm,
+                 const std::shared_ptr<al::Material>& user_mat,
+                 const std::shared_ptr<al::Mesh>& user_shape) {
+    user_mat_ = user_mat;
+    user_shape_ = user_shape;
+    sm_ = &sm;
     initialized_ = false;
     server_ = nullptr;
     client_ = nullptr;
     max_clients_ = 32;
-    sprintf(message,"Hola\0");
-    sprintf(host_name,"172.0.0.1\0");
-    
+    sprintf(host_name,"127.0.0.1\0");
+    connection_handle_thread_ = nullptr;
     /* Bind the server to the default localhost. */
     address_.host = ENET_HOST_ANY;
     /* Bind the server to port 1234. */
     address_.port = 1234;
     ticks_ = 0;
+    server_entity_id_ = 0;
   }
 
   Client::~Client() {
@@ -33,39 +41,73 @@ namespace al {
 
   void Client::CreateClient() {
     init();
-    client_ = enet_host_create( NULL  /* create a client host */,
+    client_ = enet_host_create( nullptr  /* create a client host */,
                                 1     /* only allow 1 outgoing connection */,
                                 2     /* allow up 2 channels to be used, 0 and 1 */,
                                 0     /* assume any amount of incoming bandwidth */,
                                 0     /* assume any amount of outgoing bandwidth */);
-    if (client_ == NULL) {
+    if (client_ == nullptr) {
       printf ("An error occurred while trying to create an ENet client host.\n");fflush(stdout);
     }
   }
 
+  bool Client::ClientCreated() {
+    return initialized_;
+  }
+
   void Client::Update() {
     ENetEvent event;
-    printf ("Server :D\n");fflush(stdout);
+    printf ("Client :D\n");fflush(stdout);
 
     while (enet_host_service (client_, & event, 1000) >= 0) {
       switch (event.type) {
         case ENET_EVENT_TYPE_CONNECT: {
-          printf ("A new client connected from %x:%u.\n",
+          printf ("Server connected from %x:%u.\n",
                   event.peer->address.host,
                   event.peer->address.port);fflush(stdout);
           /* Store any relevant client information here. */
-          event.peer->data = "Client information";
           break;
         }
         case ENET_EVENT_TYPE_RECEIVE: {
-          printf ("A packet of length %llu containing %s was received from %s on channel %u.\n",
-                  event.packet->dataLength,
-                  event.packet->data,
+          Package* package = (Package*)event.packet->data;
+
+          
+          printf ("A packet of type %d was received from %s on channel %u.\n",
+                  package->type(),
                   event.peer->data,
                   event.channelID);fflush(stdout);
-          /* Clean up the packet now that we're done using it. */
-          enet_packet_destroy (event.packet);
           
+          auto* em = sm_->Get<EntityManager>();
+          
+          switch (package->type()) {
+            case kNone:
+              break;
+            case kUserCameraUpdate: {
+              const auto* camera = (UserCameraUpdate*)package;
+              auto* transform = em->GetEntity(server_entity_id_)
+                                  ->get_component<TransformComponent>(*em);
+
+              transform->set_position(camera->position_);
+              transform->set_rotation(camera->rotate_x_,camera->rotate_y_,0.f);
+              break;
+            }
+            case kTransformComponentUpdate: {
+              const auto* transform = (TransformComponentUpdate*)package;
+              Entity* entity = em->GetEntity(transform->entity_id_); 
+              auto* component = entity->get_component<TransformComponent>(*em);
+              *component = transform->component_;
+              break;
+            }
+            case kLightComponentUpdate: {
+              const auto* light = (LightComponentUpdate*)package;
+              Entity* entity = em->GetEntity(light->entity_id_); 
+              auto* component = entity->get_component<LightComponent>(*em);
+              *component = light->component_;
+              break;
+                
+            }
+            default: ;
+          }
           break;
         }
         case ENET_EVENT_TYPE_DISCONNECT: {
@@ -80,17 +122,14 @@ namespace al {
       ticks_++;
 
     }
-    printf ("No Server D:\n");fflush(stdout);
+    printf ("No Client D:\n");fflush(stdout);
   }
 
-  void Client::SendPacket() {
+  void Client::SendPacket(ENetPacket* package) {
     /* Create a reliable packet */
-    ENetPacket* packet = enet_packet_create(message, 
-                                            sizeof(message) + 1,
-                                            ENET_PACKET_FLAG_RELIABLE);
     
      // Send the packet to the peer over channel id 0. 
-    enet_peer_send (server_, 0, packet);
+    enet_peer_send (server_, 0, package);
 
     // Send packets to the host
     enet_host_flush (server_->host);
@@ -111,13 +150,26 @@ namespace al {
     /* Wait up to 5 seconds for the connection attempt to succeed. */
     if (enet_host_service (client_, & event, 5000) > 0 &&
         event.type == ENET_EVENT_TYPE_CONNECT) {
-      printf("Connection to %s:%d succeeded.",host_name,address_.port);fflush
-      (stdout);
+      printf("Connection to %s:%d succeeded.",host_name,address_.port);
+      fflush(stdout);
+      connection_handle_thread_ = new std::thread(
+        &Client::Update,
+        this
+      );
+      
+      auto* em = sm_->Get<EntityManager>();
+      auto& entity = em->CreateNewEntity("Server");
+      auto* render_cmp = entity.AddComponent<RenderComponent>(*em);
+      render_cmp->mesh_ = user_shape_;
+      render_cmp->material_ = user_mat_;
+      server_entity_id_ = entity.id();
+      
     } else {
       /* Either the 5 seconds are up or a disconnect event was */
       /* received. Reset the peer in the event the 5 seconds   */
       /* had run out without any significant event.            */
       enet_peer_reset (server_);
+      server_ = nullptr;
       printf("Connection to %s:1234 failed.",host_name);fflush(stdout);
     }
   }
@@ -158,29 +210,36 @@ namespace al {
   }
 
   void Client::ImguiMenu() {
+    if (!ClientCreated()) {
+      ImGui::InputText("Host name",host_name,100);
+      if (ImGui::Button("Connect")){
+        CreateClient();
+        Connect();
+      }
+    } else {
+      ImGui::Text("Tick %d",ticks_);
+      ImGui::SameLine(); if (ImGui::Button("Disconnect")){
+        Disconnect();
+        CloseClient();
+      }
+    }
+    
     ImVec4 color_green = ImVec4(0,1,0,1);
     ImVec4 color_red = ImVec4(1,0,0,1);
     ImGui::Begin("Network");
-    ImGui::Text("Tick %d",ticks_);
     ImGui::ColorEdit4("##3",
       server_ != nullptr ? (float*)&color_green : (float*)&color_red,
       ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-      
-    
-    if (ImGui::Button("Connect")){
-      CreateClient();
-      Connect();
-    }
-    
-    ImGui::SameLine(); if (ImGui::Button("Disconnect")){
-      Disconnect();
-    }
-    ImGui::InputText("Message",message,255);
-
-    ImGui::SameLine(); if (ImGui::Button("Send")){
-      SendPacket();
-    }
     
     ImGui::End();
+  }
+
+  void Client::CloseClient() {
+    
+    if (initialized_){
+      initialized_ = false;
+      enet_deinitialize();
+      enet_host_destroy(client_);
+    }
   }
 }

@@ -11,24 +11,63 @@
 
 #include "components/transform_component.h"
 #include "engine/entity_manager.h"
+#include "engine/networking.h"
 #include "engine/service_manager.h"
 namespace al{
-  void LightComponent::ImguiTree(uint32_t id) {
-    ImGui::ColorPicker3("Color",&color_.r,ImGuiColorEditFlags_Float);
+  void LightComponent::ImguiTree(uint32_t id, ServiceManager* sm) {
+    bool changed = false;
+    glm::vec3 aux_col = color_;
+    ImGui::ColorPicker3("Color",&aux_col.r,ImGuiColorEditFlags_Float);
+    if (
+      color_.r != aux_col.r ||
+      color_.g != aux_col.g ||
+      color_.b != aux_col.b
+      ) {
+      changed = true;
+      color_ = aux_col;
+    }
     int b = brightness_;
     ImGui::DragInt("Brightness",&b,0,0,255,"%d");
-    brightness_ = b;
-
-  
+    if (b != brightness_) {
+      changed = true;
+      brightness_ = b;
+    }
+    
     switch (type_){
-    case Pointlight:{
-      ImGui::DragFloat("Constant",&constant_,0.02f,0.f);
-      ImGui::DragFloat("Linear",&linear_,0.02f,0.f);
-      ImGui::DragFloat("Quadratic",&quadratic_,0.02f,0.f);
+      case Pointlight:{
+        float aux = constant_;
+        ImGui::DragFloat("Constant",&aux,0.02f,0.f);
+        if (aux != constant_) {
+          constant_ = aux;
+          changed = true;
+        }
+        aux = linear_;
+
+        ImGui::DragFloat("Linear",&linear_,0.02f,0.f);
+        if (aux != linear_) {
+          linear_ = aux;
+          changed = true;
+        }
+        aux = quadratic_;
+        ImGui::DragFloat("Quadratic",&quadratic_,0.02f,0.f);
+        if (aux != quadratic_) {
+          quadratic_ = aux;
+          changed = true;
+        }
+      }
+      
+      default:{
+        break;
+      }
     }
-    default:{
-      break;
-    }
+    if (changed) {
+      Networking* networking = sm->Get<Networking>();
+      if (networking) {
+        LightComponentUpdate update;
+        update.entity_id_ = id;
+        update.component_ = *this;
+        networking->SendPackage(&update);
+      }
     }
   }
 

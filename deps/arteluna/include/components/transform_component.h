@@ -10,7 +10,7 @@ namespace al{
     TransformComponent();
     ~TransformComponent() override;
 
-    void ImguiTree(uint32_t id) override;
+    void ImguiTree(uint32_t id, ServiceManager* sm) override;
 
     const glm::vec3& position() const;
     void set_position(const glm::vec3& position);

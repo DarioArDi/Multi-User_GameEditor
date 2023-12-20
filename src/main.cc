@@ -15,7 +15,8 @@
 #include "engine/networking.h"
 uint32_t cubes_parent_id;
 
-void InitLevel(al::ServiceManager& sm) {
+void InitLevel(al::ServiceManager& sm, std::shared_ptr<al::Material>& basic_mat,
+  std::shared_ptr<al::Mesh> cubo) {
   al::EntityManager& em = *sm.Get<al::EntityManager>();
   auto& l_manager = *sm.Get<al::LightManager>();
    std::shared_ptr<al::Material> material = std::make_shared<al::Material>(
@@ -34,15 +35,9 @@ void InitLevel(al::ServiceManager& sm) {
     "../../deps/arteluna/data/textures/wavy.jpg",
     "../../deps/arteluna/data/textures/wavy_DISP.png"
   );
-
-  std::shared_ptr<al::Material> basic_mat = std::make_shared<al::Material>(
-    "../../deps/arteluna/bin/vertex.glslv",
-    "../../deps/arteluna/bin/fragment.glslf"
-  );
   
   std::shared_ptr<al::Mesh> sphere = std::make_shared<al::Mesh>(al::Mesh::Sphere);
   
-  std::shared_ptr<al::Mesh> cubo = std::make_shared<al::Mesh>(al::Mesh::Cube);
 
   al::Entity& entity_1 = sm.Get<al::EntityManager>()->CreateNewEntity("Cube");
 
@@ -178,6 +173,7 @@ void InitLevel(al::ServiceManager& sm) {
 
 int main() {
   al::ServiceManager sm;
+
   al::Engine engine(sm);
   al::EntityManager& em = *sm.Get<al::EntityManager>();
 
@@ -187,7 +183,17 @@ int main() {
   sm.Add(l_manager);
   assert(sm.Get<al::LightManager>());
   window.camera_.InitCubeMap();
-  InitLevel(sm);
+  std::shared_ptr<al::Material> basic_mat = std::make_shared<al::Material>(
+      "../../deps/arteluna/bin/vertex.glslv",
+      "../../deps/arteluna/bin/fragment.glslf"
+    );
+  std::shared_ptr<al::Mesh> cubo = std::make_shared<al::Mesh>(al::Mesh::Cube);
+  al::Networking networking(sm,basic_mat,cubo);
+  
+  sm.Add(networking);
+  assert(sm.Get<al::Networking>());
+
+  InitLevel(sm,basic_mat,cubo);
   
   while (!window.ShouldClose()) {
  
@@ -216,7 +222,7 @@ int main() {
     }
     
     // --------ImGui--------
-    engine.networking.ImguiMenu();
+    networking.ImguiMenu();
     
     // ----------------------
     window.EndFrame();

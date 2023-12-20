@@ -8,7 +8,9 @@
 #include "engine/service_manager.h"
 
 namespace al{
-  void TransformComponent::ImguiTree(uint32_t id) {
+  void TransformComponent::ImguiTree(uint32_t id, ServiceManager* sm) {
+    bool changed = false;
+
     char label[50] = {'\n'};
     glm::vec3 pos_aux = position_;
     sprintf_s(label, "X##P%d", id);
@@ -19,6 +21,7 @@ namespace al{
     ImGui::DragFloat(label,&pos_aux.z,0.1f);
     if (pos_aux != position_) {
       set_position(pos_aux);
+      changed = true;
     }
 
     glm::vec3 rot_aux = rotation_;
@@ -31,6 +34,8 @@ namespace al{
     ImGui::DragFloat(label,&rot_aux.z,0.01f);
     if (rot_aux != rotation_) {
       set_rotation(rot_aux);
+      changed = true;
+
     }
   
     glm::vec3 scale_aux = scale_;
@@ -43,6 +48,7 @@ namespace al{
     ImGui::DragFloat(label,&scale_aux.z,0.01f);
     if (scale_aux != scale_) {
       set_scale(scale_aux);
+      changed = true;
     }
     ImGui::Text("Forward: %.3f  %.3f  %.3f",forward_.x,forward_.y,forward_.z);
     ImGui::Text("Up: %.3f  %.3f  %.3f",up_.x,up_.y,up_.z);

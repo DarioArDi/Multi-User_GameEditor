@@ -4,7 +4,7 @@
 
 #include <cstdio>
 namespace al{
-  void SoundEmitterComponent::ImguiTree(uint32_t id) {
+  void SoundEmitterComponent::ImguiTree(uint32_t id, ServiceManager* sm) {
 	
   }
 

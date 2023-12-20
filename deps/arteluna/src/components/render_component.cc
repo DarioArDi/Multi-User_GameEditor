@@ -13,17 +13,12 @@
 #include "utils.h"
 
 namespace al{
-  void RenderComponent::ImguiTree(uint32_t id) {
+  void RenderComponent::ImguiTree(uint32_t id, ServiceManager* sm) {
   }
 
   RenderComponent::RenderComponent() {
     mesh_ = nullptr;
     material_ = nullptr;
-  }
-
-  RenderComponent::RenderComponent(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material) {
-    mesh_ = mesh;
-    material_ = material;
   }
 
   void RenderComponent::RenderForward(EntityManager& em, LightManager& lm) const{

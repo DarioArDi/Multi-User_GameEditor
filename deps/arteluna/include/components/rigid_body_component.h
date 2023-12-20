@@ -9,7 +9,7 @@ namespace al{
   class RigidBodyComponent : public Component {
   public:
     virtual ~RigidBodyComponent();
-    void ImguiTree(uint32_t id) override;
+    void ImguiTree(uint32_t id, ServiceManager* sm) override;
     
     std::shared_ptr<Mesh> meshComponent_;
   

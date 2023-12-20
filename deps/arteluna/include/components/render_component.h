@@ -13,7 +13,7 @@ namespace al{
 
   class RenderComponent : public Component {
   public:
-    void ImguiTree(uint32_t id) override;
+    void ImguiTree(uint32_t id, ServiceManager* sm) override;
     std::shared_ptr<Mesh> mesh_;
     std::shared_ptr<Material> material_;
     void RenderForward(class EntityManager& sm,class LightManager& lm) const;

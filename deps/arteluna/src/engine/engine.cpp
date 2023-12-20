@@ -15,7 +15,7 @@ namespace al{
   }
 
 
-  Engine::Engine(ServiceManager& sm) : systems_(sm){
+  Engine::Engine(ServiceManager& sm) : systems_(sm) {
 
     sm.Add(em_);
     assert(sm.Get<EntityManager>());
@@ -23,8 +23,6 @@ namespace al{
     sm.Add(systems_);
     assert(sm.Get<Systems>());
     
-    sm.Add(networking);
-    assert(sm.Get<Networking>());
 
     sm_ = &sm;
   }

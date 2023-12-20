@@ -23,7 +23,6 @@ namespace al{
       bool windowed = true, int monitor = 0);
 
     ServiceManager* sm_;
-    Networking networking;
     EntityManager em_;
     Systems systems_;
   protected:

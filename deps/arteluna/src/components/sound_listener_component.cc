@@ -2,7 +2,7 @@
 
 #include "components/sound_listener_component.h"
 namespace al{
-  void SoundListenerComponent::ImguiTree(uint32_t id) {
+  void SoundListenerComponent::ImguiTree(uint32_t id, ServiceManager* sm) {
   }
 
   SoundListenerComponent::SoundListenerComponent() {

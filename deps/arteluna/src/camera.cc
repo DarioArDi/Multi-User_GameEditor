@@ -13,6 +13,7 @@
 #include "engine/light_manager.h"
 #include "engine/material.h"
 #include "engine/mesh.h"
+#include "engine/networking.h"
 #include "engine/service_manager.h"
 namespace al{
   Camera::Camera() {
@@ -46,7 +47,6 @@ namespace al{
   void Camera::UpdateFromInput(double deltatime, Input* input) {
     float speed = movement_speed_;
     float delta_time = (float)deltatime;
-
     if (input->IsMouseButtonDown(1)) {
       input->setMouseMode(DISABLED);
       is_moving_ = true;
@@ -58,27 +58,28 @@ namespace al{
     if (is_moving_){
       if (input->IsKeyDown(LEFT_SHIFT)) {
         speed = speed * 2;
+
       }
 
       if (input->IsKeyDown(LEFT) ||
         input->IsKeyDown(A) && mode_ == Modes::PERSPECTIVE) {
         position_ += right_ * speed * delta_time;
-        }
+      }
 
       if (input->IsKeyDown(RIGHT) ||
         input->IsKeyDown(D) && mode_ == Modes::PERSPECTIVE) {
         position_ -= right_ * speed * delta_time;
-        }
+      }
 
       if (input->IsKeyDown(UP) ||
         input->IsKeyDown(W) && mode_ == Modes::PERSPECTIVE) {
         position_ += (forward_) * speed * delta_time;
-        }
+      }
 
       if (input->IsKeyDown(DOWN) ||
         input->IsKeyDown(S) && mode_ == Modes::PERSPECTIVE) {
         position_ -= (forward_) * speed * delta_time;
-        }
+      }
 
       if (input->IsKeyDown(E)) {
         position_ += up_ * speed * delta_time;
@@ -94,19 +95,35 @@ namespace al{
           rotate_x_ = -1.5f;
         }
       }
+
       if (input->IsKeyDown(K)) {
         rotate_x_ += rotation_speed_ * delta_time;
         if (rotate_x_ > 1.5f) {
           rotate_x_ = 1.5f;
         }
       }
+
       if (input->IsKeyDown(L)) {
         rotate_y_ += rotation_speed_ * delta_time;
       }
+
       if (input->IsKeyDown(J)) {
         rotate_y_ -= rotation_speed_ * delta_time;
       }
+
+      if (is_moving_) {
+        Networking* networking = sm_->Get<Networking>();
+        if (networking) {
+          UserCameraUpdate update;
+          update.position_ = position_;
+          update.rotate_x_ = rotate_x_;
+          update.rotate_y_ = -rotate_y_;
+          networking->SendPackage(&update);
+        }
+      }
     }
+
+    
   }
 
   void Camera::UpdateRotation(double deltatime, glm::vec<2,float> cursor_pos) {
@@ -302,7 +319,7 @@ namespace al{
     ImGui::Begin("Entities");  {
       if (ImGui::TreeNode((void*)(intptr_t)0, "Root")) {
         auto& t_comp = transform_components->at(0).value();
-        t_comp.ImguiTree(0);
+        t_comp.ImguiTree(0,sm_);
         ImGui::TreePop();
       }
 
@@ -311,13 +328,13 @@ namespace al{
         if (t_comp.has_value()) {
           if (ImGui::TreeNode((void*)(intptr_t)i, "%s | id:%d", em->entities_.at(i).name().c_str(),em->entities_.at(i).id() )) {
             if (ImGui::TreeNode(&t_comp, "Transform")){
-              t_comp->ImguiTree((uint32_t)i);
+              t_comp->ImguiTree((uint32_t)i,sm_);
               ImGui::TreePop();
             }
             auto& l_comp = light_components->at(i);
             if (l_comp.has_value()){
               if (ImGui::TreeNode(&l_comp, "Light opt")){
-                l_comp->ImguiTree((uint32_t)i);
+                l_comp->ImguiTree((uint32_t)i,sm_);
               
                 ImGui::TreePop();
               }

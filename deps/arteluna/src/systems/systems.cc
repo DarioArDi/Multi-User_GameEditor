@@ -2,6 +2,7 @@
 
 #include "entity.h"
 #include "engine/entity_manager.h"
+#include "engine/networking.h"
 #include "engine/service_manager.h"
 namespace al{
   Systems::Systems(ServiceManager& sm) {
@@ -48,7 +49,16 @@ namespace al{
     for (size_t i = 0; i < em->entities_.size(); i++){
       TransformComponent* transform = em->entities_[i].get_component<TransformComponent>(*service_manager_->Get<EntityManager>());
       if (transform){
-        transform->dirty_ = false;
+        if (transform->dirty()) {
+          transform->dirty_ = false;
+          Networking* networking = service_manager_->Get<Networking>();
+          if (networking) {
+            TransformComponentUpdate update;
+            update.entity_id_ = i;
+            update.component_ = *transform;
+            networking->SendPackage(&update);
+          }
+        }
       }
     }
 

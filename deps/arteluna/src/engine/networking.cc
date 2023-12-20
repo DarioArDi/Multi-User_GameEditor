@@ -4,56 +4,70 @@
 #include "imgui.h"
 
 namespace al {
-  Networking::Networking() {
+  Networking::Networking(ServiceManager& sm,
+      std::shared_ptr<al::Material>& user_mat,
+      std::shared_ptr<al::Mesh>& user_shape)
+  : server_(sm,user_mat,user_shape),
+    client_(sm,user_mat,user_shape) {
     
+    sm_ = &sm;
   }
 
   Networking::~Networking() {
+    
   }
 
   void Networking::ImguiMenu() {
-    ImVec4 color_green = ImVec4(0,1,0,1);
-    ImVec4 color_red = ImVec4(1,0,0,1);
+
     ImGui::Begin("Network");
-    ImGui::Text("Tick %d",server_.ticks_);
-    if (ImGui::Button("Create Server")){
-      server_.StartServer();
+
+    if (!client_.ClientCreated()) {
+      server_.ImguiMenu();
     }
-    
-    ImGui::SameLine(); if (ImGui::Button("Destroy Server")){
-      server_.EndServer();
+    if (!server_.ServerStarted()) {
+      client_.ImguiMenu();
     }
-    ImGui::SameLine(); ImGui::ColorEdit4("##3",
-      server_.server_ != nullptr ? (float*)&color_green : (float*)&color_red,
-      ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-    
-    if (ImGui::Button("Connect")){
-      client_.CreateClient();
-      client_.Connect();
-    }
-    
-    ImGui::SameLine(); if (ImGui::Button("Disconnect")){
-      client_.Disconnect();
-    }
-    ImGui::SameLine(); ImGui::ColorEdit4("##3",
-       client_.server_ != nullptr ? (float*)&color_green : (float*)&color_red,
-       ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-    
-    ImGui::SameLine(); if (ImGui::Button("Send")){
-      client_.SendPacket();
-    }
-    
     ImGui::End();
   }
 
+  void Networking::SendPackage(Package* package) {
+    ENetPacket* packet = enet_packet_create(package, 
+                                            package->size(),
+                                            ENET_PACKET_FLAG_RELIABLE);
+    if (client_.ClientCreated()) {
+      client_.SendPacket(packet);
+    } else if (server_.ServerStarted()){
+      server_.BroadcastChange(packet,nullptr);
+    }
+  }
+
+  PackageType Package::type() const {
+    return type_;
+  }
+
+  size_t Package::size() const {
+    return size_;
+  }
+
   ComponentUpdate::ComponentUpdate() {
-    type_ = kComponentUpdate;
-    component_ = nullptr;
+    entity_id_ = 0;
+  }
+
+  TransformComponentUpdate::TransformComponentUpdate() {
+    type_ = kTransformComponentUpdate;
+    size_ = sizeof(TransformComponentUpdate);
+  }
+
+  LightComponentUpdate::LightComponentUpdate() {
+    type_ = kLightComponentUpdate;
+    size_ = sizeof(LightComponentUpdate);
   }
 
   UserCameraUpdate::UserCameraUpdate() {
     type_ = kUserCameraUpdate;
+    size_ = sizeof(UserCameraUpdate);
     position_ = glm::vec3();
-    rotation_ = glm::vec3();
+    rotate_x_ = 0.f;
+    rotate_y_ = 0.f;
   }
 }

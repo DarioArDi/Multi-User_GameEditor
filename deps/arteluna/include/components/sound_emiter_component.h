@@ -5,7 +5,7 @@ namespace al{
   class SoundEmitterComponent : public Component {
   public:
     
-    void ImguiTree(uint32_t id) override;
+    void ImguiTree(uint32_t id, ServiceManager* sm) override;
     ~SoundEmitterComponent() override;
 
   protected:
