@@ -52,11 +52,24 @@ namespace al{
         if (transform->dirty()) {
           transform->dirty_ = false;
           Networking* networking = service_manager_->Get<Networking>();
+          
           if (networking) {
-            TransformComponentUpdate update;
-            update.entity_id_ = i;
-            update.component_ = *transform;
-            networking->SendPackage(&update);
+            if (networking->client_.server_entity_id_ != i) {
+              bool not_used = true;
+              for (auto client : networking->server_.clients_) {
+                if (client.second == i) {
+                  not_used = false;
+                  break;
+                }
+              }
+              
+              if (not_used) {
+                TransformComponentUpdate update;
+                update.entity_id_ = i;
+                update.component_ = *transform;
+                networking->SendPackage(&update);
+              }
+            }
           }
         }
       }

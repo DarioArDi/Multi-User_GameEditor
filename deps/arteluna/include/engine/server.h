@@ -48,12 +48,13 @@ namespace al {
     std::thread* connection_handle_thread_;
     ENetAddress address_;
     ENetHost* server_;
-    std::vector<std::pair<_ENetPeer*,int>> clients_;
+    std::vector<std::pair<_ENetPeer*,size_t>> clients_;
     int8_t max_clients_;
     uint32_t ticks_;
     bool initialized_;
     int next_user_id = 0;
     friend class Networking;
+    friend class Systems;
   };
 }
 #endif

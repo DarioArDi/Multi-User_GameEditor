@@ -53,6 +53,8 @@ namespace al {
     uint32_t ticks_;
     bool initialized_;
     friend class Networking;
+    friend class Systems;
+
   };
 }
 #endif

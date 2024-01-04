@@ -73,6 +73,7 @@ namespace al {
     
     Server server_;
     Client client_;
+    friend class Systems;
   };
 
  

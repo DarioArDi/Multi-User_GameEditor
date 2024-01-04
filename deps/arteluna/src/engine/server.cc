@@ -110,7 +110,7 @@ namespace al {
                   event.channelID);fflush(stdout);
           
           auto* em = sm_->Get<EntityManager>();
-          std::pair<_ENetPeer*,int>* client = nullptr;
+          std::pair<_ENetPeer*,size_t>* client = nullptr;
           for (auto& element : clients_) {
             if (element.first->connectID == event.peer->connectID) {
               client = &element;
