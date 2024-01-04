@@ -21,7 +21,6 @@ namespace al {
     initialized_ = false;
     server_ = nullptr;
     client_ = nullptr;
-    max_clients_ = 32;
     sprintf(host_name,"127.0.0.1\0");
     connection_handle_thread_ = nullptr;
     /* Bind the server to the default localhost. */

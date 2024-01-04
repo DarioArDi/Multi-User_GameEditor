@@ -36,7 +36,7 @@ namespace al {
 
     void ImguiMenu();
     
-    void CloseServer();
+    // void CloseServer();
 
   private:
     void init();
@@ -45,10 +45,15 @@ namespace al {
     char host_name_[100];
     std::shared_ptr<al::Material> user_mat_;
     std::shared_ptr<al::Mesh> user_shape_;
+    
     std::thread* connection_handle_thread_;
+    
     ENetAddress address_;
+    
     ENetHost* server_;
+    
     std::vector<std::pair<_ENetPeer*,size_t>> clients_;
+    
     int8_t max_clients_;
     uint32_t ticks_;
     bool initialized_;

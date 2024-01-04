@@ -10,7 +10,7 @@
 #include "engine/mesh.h"
 #include "engine/material.h"
 #include "engine/networking.h"
-
+#include "components/render_component.h"
 namespace al {
   Server::Server(ServiceManager& sm, std::shared_ptr<al::Material>& user_mat,
     std::shared_ptr<al::Mesh>& user_shape) {
@@ -81,6 +81,7 @@ namespace al {
     while (enet_host_service (server_, & event, 1000) >= 0) {
 
       switch (event.type) {
+        
         case ENET_EVENT_TYPE_CONNECT: {
           char user_name[30] = {'\0'};
           printf ("A new client connected from %x:%u.\n",
@@ -100,6 +101,8 @@ namespace al {
           next_user_id++;
           break;
         }
+
+        
         case ENET_EVENT_TYPE_RECEIVE: {
           Package* package = (Package*)event.packet->data;
 
@@ -206,14 +209,14 @@ namespace al {
       ImGui::Text("Tick %d",ticks_);
       ImGui::SameLine(); if (ImGui::Button("Destroy Server")){
         EndServer();
-        CloseServer();
+        // CloseServer();
       }
     }
   }
 
-  void Server::CloseServer() {
-    
-  }
+  // void Server::CloseServer() {
+  //   
+  // }
 
   void Server::init() {
     if(!initialized_){

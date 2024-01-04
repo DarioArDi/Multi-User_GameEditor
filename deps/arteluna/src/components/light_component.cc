@@ -60,6 +60,7 @@ namespace al{
         break;
       }
     }
+    
     if (changed) {
       Networking* networking = sm->Get<Networking>();
       if (networking) {

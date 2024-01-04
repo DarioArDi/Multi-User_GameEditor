@@ -42,14 +42,16 @@ namespace al {
     ServiceManager* sm_;
     std::shared_ptr<al::Material> user_mat_;
     std::shared_ptr<al::Mesh> user_shape_;
+    
     char host_name[100];
 
     std::thread* connection_handle_thread_;
+    
     ENetAddress address_;
     ENetPeer* server_;
     uint32_t server_entity_id_;
+    
     ENetHost* client_;
-    int8_t max_clients_;
     uint32_t ticks_;
     bool initialized_;
     friend class Networking;

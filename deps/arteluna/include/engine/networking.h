@@ -5,7 +5,6 @@
 #include "client.h"
 #include "server.h"
 #include "components/light_component.h"
-#include "components/render_component.h"
 #include "components/transform_component.h"
 
 namespace al{
